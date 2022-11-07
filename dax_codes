@@ -1,0 +1,49 @@
+
+-- automated calculation of yearly growth
+Yearly Growth = 
+VAR _year =
+    SELECTEDVALUE('Table'[Year])-1
+VAR _previousOvernights = 
+    CALCULATE(SUM('Table'[Value]),'Table'[Year] = _year)
+VAR _currentOvernights = 
+    SUM('Table'[Value])
+VAR _growth = 
+    DIVIDE(_currentOvernights-_previousOvernights,_previousOvernights)
+RETURN
+    _growth
+
+-- calculate yoy change 2 specific years
+CHANGE 20_21 YoY% = 
+-- calculate 2020 sales 
+VAR __PREV_YEAR =
+	CALCULATE(SUM('Table'[Searches]),'Table'[Year] = 2020)
+-- calculate 2021 sales 
+VAR __THIS_YEAR =
+	CALCULATE(SUM('Table'[Searches]),'Table'[Year] = 2021)
+RETURN
+	DIVIDE(__THIS_YEAR - __PREV_YEAR, __PREV_YEAR)
+
+
+-- last year sales
+sales_ly = CALCULATE(SUM(sales[sales]), SAMEPERIODLASTYEAR(Dates[Date]))
+
+-- last month sales
+sales_lm = CALCULATE(SUM(sales[sales]), PARALLELPERIOD(Dates[dates], -1, MONTH))
+
+-- create date table
+Date =
+VAR MinYear = YEAR ( MIN ( Sales[Order Date] ) )
+VAR MaxYear = YEAR ( MAX ( Sales[Order Date] ) )
+RETURN
+ADDCOLUMNS (
+    FILTER (
+        CALENDARAUTO( ),
+        AND ( YEAR ( [Date] ) >= MinYear, YEAR ( [Date] ) <= MaxYear )
+    ),
+    "Calendar Year", "CY " & YEAR ( [Date] ),
+    "Month Name", FORMAT ( [Date], "mmmm" ),
+    "Month Number", MONTH ( [Date] ),
+    "Weekday", FORMAT ( [Date], "dddd" ),
+    "Weekday number", WEEKDAY( [Date] ),
+    "Quarter", "Q" & TRUNC ( ( MONTH ( [Date] ) - 1 ) / 3 ) + 1
+)
